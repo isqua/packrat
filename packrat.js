@@ -2,7 +2,7 @@ var path = require('path'),
     fs = require('fs'),
     crypto = require('crypto'),
     util = require('util'),
-    sh = require('execSync'),
+    spawnSync = require('child_process').spawnSync,
     messages = require('./lib/messages'),
     timer = require('contimer'),
     moment = require('moment'),
@@ -230,14 +230,16 @@ Packrat.prototype.runCommand = function() {
         this.log('Packrat is running `%s`...', command);
     }
 
-    result = sh.exec(command, true);
+    result = spawnSync('sh', [ '-c', command ], {
+        stdio: [ 0, 1, 2 ]
+    });
 
     if (result.stdout) {
-        this.log(result.stdout);
+        this.log(String(result.stdout));
     }
 
-    if (result.code !== 0) {
-        this.onError(new Error(util.format('`%s` command failed', command)), result.code);
+    if (result.status !== 0) {
+        this.onError(new Error(util.format('`%s` command failed', command)), result.status);
     }
 
     return result;
